@@ -4,6 +4,11 @@
 class SRRdtReceiver :public RdtReceiver
 {
 private:
+	int base;
+	int win_len;
+	int packetsRecv[MAX_SEQNUM];
+	Packet *packetsQueue[MAX_SEQNUM];
+
 public:
 	SRRdtReceiver();
 	virtual ~SRRdtReceiver();

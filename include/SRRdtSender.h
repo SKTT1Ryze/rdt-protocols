@@ -6,7 +6,11 @@
 class SRRdtSender :public RdtSender
 {
 private:
-
+	int win_len;
+	int base;
+	int nextseqnum;
+	int packetsACK[MAX_SEQNUM];
+	Packet* packetsQueue[MAX_SEQNUM];
 public:
 	bool getWaitingState();
 	bool send(const Message &message);

@@ -54,7 +54,7 @@ void GBNRdtSender::receive(const Packet &ackPkt) {
 }
 
 void GBNRdtSender::timeoutHandler(int seqNum) {
-    cout << "[sender]time out, resend." << endl;
+    cout << "[Sender]time out, resend." << endl;
     pns->stopTimer(SENDER, seqNum);
     pns->startTimer(SENDER, Configuration::TIME_OUT, seqNum);
     int i = this->base;
