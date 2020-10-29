@@ -1,5 +1,6 @@
 # RDT Protocols
 HUST Computer Network Lab 2: Implemation of rdt-protocols.  
+![GBN](./img/gbn.png)  
 
 ## Dependence
 + Linux
@@ -17,13 +18,13 @@ HUST Computer Network Lab 2: Implemation of rdt-protocols.
 
 ## Run
 (Assuming that you are in the `rdt-protocols/build/` path)  
-run Stop-Wait rdt-protocol:  
+Run Stop-Wait rdt-protocol:  
 >\$ ../bin/stop_wait  
 
-run GBN rdt-protocol:  
+Run GBN rdt-protocol:  
 >\$ ../bin/gbn  
 
-run SR rdt-protocol:(not done)  
+Run SR rdt-protocol:(not done)  
 >\$ ../bin/sr  
 
 ## Check  
