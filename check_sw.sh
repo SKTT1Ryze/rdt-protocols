@@ -1,8 +1,5 @@
 #!/bin/bash
-# appname 程序名称
-# inputname 输入文件名
-# outputname 输出文件名
-# resultname 程序控制台输出结果重定向文件名
+# Check Script for StopWait Rdt Protocol
 
 appname='./bin/stop_wati'
 inputname='./input.txt'
