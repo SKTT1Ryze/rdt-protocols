@@ -38,7 +38,7 @@ bool SRRdtSender::send(const Message &message) {
 }
 
 void SRRdtSender::receive(const Packet &ackPkt) {
-    cout<< "[Sender]receive ACK: " << ackPkt.acknum <<endl;
+    cout<< "[Sender]receive ACK: " << ackPkt.acknum << endl;
     int checksum = pUtils->calculateCheckSum(ackPkt);
     if(checksum == ackPkt.checksum) {
         cout << "[Sender]check ACK pass" << endl;
