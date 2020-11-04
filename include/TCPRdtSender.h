@@ -10,6 +10,7 @@ private:
 	int nextseqnum;
 	int pre_ack;
 	int ack_count;
+	int timer_run;
 	vector<Packet*> packets;
 public:
 	bool getWaitingState();

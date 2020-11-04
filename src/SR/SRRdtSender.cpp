@@ -60,6 +60,11 @@ void SRRdtSender::receive(const Packet &ackPkt) {
     //     pns->stopTimer(SENDER, ackPkt.acknum);
     //     pns->startTimer(SENDER, Configuration::TIME_OUT, ackPkt.acknum);
     // }
+    cout << "[Sender]window: ";
+    for(int i = this->base; i < this->nextseqnum; i++ ) {
+        cout << this->packetsQueue[i % MAX_SEQNUM]->checksum << " ";
+    }
+    cout << endl;
 }
 
 void SRRdtSender::timeoutHandler(int seqNum) {

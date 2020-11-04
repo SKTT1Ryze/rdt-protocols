@@ -3,7 +3,7 @@
 #include "Global.h"
 #include "TCPRdtSender.h"
 
-TCPRdtSender::TCPRdtSender():win_len(4), base(0), nextseqnum(0), pre_ack(0), ack_count(0) {
+TCPRdtSender::TCPRdtSender():win_len(4), base(0), nextseqnum(0), pre_ack(0), ack_count(0), timer_run(0) {
     this->packets = vector<Packet *> {};
 }
 
@@ -28,9 +28,14 @@ bool TCPRdtSender::send(const Message &message) {
     this->packets.push_back(new_packet);
     pUtils->printPacket("[Sender]send packet", *new_packet);
     pns->sendToNetworkLayer(RECEIVER, *new_packet);
-    pns->startTimer(SENDER, Configuration::TIME_OUT, new_packet->seqnum);
+    // pns->startTimer(SENDER, Configuration::TIME_OUT, new_packet->seqnum);
+    // pns->stopTimer(SENDER, 0);
+    if(!this->timer_run) {
+        pns->startTimer(SENDER, Configuration::TIME_OUT, 0);
+        this->timer_run = 1;
+    }
     this->nextseqnum += sizeof(new_packet->payload);
-    cout << "[Sender]packets size: " << this->packets.size() << endl;
+    // cout << "[Sender]packets size: " << this->packets.size() << endl;
     return true;
 }
 
@@ -43,11 +48,11 @@ void TCPRdtSender::receive(const Packet &ackPkt) {
             vector<int> remove_list = vector<int> {};
             for(int i = 0; i < this->packets.size(); i++) {
                 if(this->packets[i]->seqnum < ackPkt.acknum) {
-                    pns->stopTimer(SENDER, this->packets[i]->seqnum);
+                    // pns->stopTimer(SENDER, this->packets[i]->seqnum);
                     remove_list.push_back(i);
                 } else {
-                    pns->stopTimer(SENDER, this->packets[i]->seqnum);
-                    pns->startTimer(SENDER, Configuration::TIME_OUT, this->packets[i]->seqnum);
+                    // pns->stopTimer(SENDER, this->packets[i]->seqnum);
+                    // pns->startTimer(SENDER, Configuration::TIME_OUT, this->packets[i]->seqnum);
                 }
             }
             for(int i = 0; i < remove_list.size(); i++) {
@@ -57,46 +62,61 @@ void TCPRdtSender::receive(const Packet &ackPkt) {
                     remove_list[j] -= 1;
                 }
             }
-        }
-        cout << "[Sender]packets size: " << this->packets.size() << endl;
-        cout << "[Sender]window: { ";
-        for(int i = 0; i < this->packets.size(); i++) {
-            cout << this->packets[i]->seqnum << " ";
-        }
-        cout << "}" << endl;
-    } else {
-        pUtils->printPacket("[Sender]receive wrong ack: ", ackPkt);
-        if(ackPkt.acknum == this->pre_ack) {
-            this->ack_count++;
-        } else
-        {
-            this->pre_ack = ackPkt.acknum;
-            this->ack_count = 0;
-        }
-        if(this->ack_count >= 2) {
-            for(int i = 0; i < this->packets.size(); i++) {
-                if(this->packets[i]->seqnum == ackPkt.acknum) {
-                    pUtils->printPacket("[Sender]fast resend: ", *this->packets[i]);
-                    pns->sendToNetworkLayer(RECEIVER, *this->packets[i]);
-                    // pns->stopTimer(SENDER, this->packets[i]->seqnum);
-                    // pns->startTimer(SENDER, Configuration::TIME_OUT, this->packets[i]->seqnum);
-                    break;
+            // pns->stopTimer(SENDER, 0);
+            // pns->startTimer(SENDER, Configuration::TIME_OUT, 0);
+        } else {
+            if(ackPkt.acknum == this->pre_ack) {
+                this->ack_count++;
+            } else
+            {
+                this->pre_ack = ackPkt.acknum;
+                this->ack_count = 0;
+            }
+            if(this->ack_count >= 2) {
+                for(int i = 0; i < this->packets.size(); i++) {
+                    if(this->packets[i]->seqnum == ackPkt.acknum) {
+                        pUtils->printPacket("[Sender]fast resend: ", *this->packets[i]);
+                        pns->sendToNetworkLayer(RECEIVER, *this->packets[i]);
+                        // pns->stopTimer(SENDER, this->packets[i]->seqnum);
+                        // pns->startTimer(SENDER, Configuration::TIME_OUT, this->packets[i]->seqnum);
+                        pns->stopTimer(SENDER, 0);
+                        pns->startTimer(SENDER, Configuration::TIME_OUT, 0);
+                        break;
+                    }
                 }
             }
         }
+        if(this->packets.size() > 0) {
+            pns->stopTimer(SENDER, 0);
+            pns->startTimer(SENDER, Configuration::TIME_OUT, 0);
+        }
+    } else {
+        pUtils->printPacket("[Sender]receive wrong ack: ", ackPkt);
+        
         // pns->stopTimer(SENDER, ackPkt.acknum);
         // pns->startTimer(SENDER, Configuration::TIME_OUT, ackPkt.acknum);
     }
+    cout << "[Sender]packets size: " << this->packets.size() << endl;
+    cout << "[Sender]window: { ";
+    for(int i = 0; i < this->packets.size(); i++) {
+        cout << this->packets[i]->seqnum << " ";
+    }
+    cout << "}" << endl;
 }
 
 void TCPRdtSender::timeoutHandler(int seqNum) {
     if(this->packets.empty()) {
         // do nothing
     } else {
+        pUtils->printPacket("[Sender]time out, resend", *this->packets[0]);
         pns->sendToNetworkLayer(RECEIVER, *this->packets[0]);
-        pns->stopTimer(SENDER, this->packets[0]->seqnum);
-        pns->startTimer(SENDER, Configuration::TIME_OUT, this->packets[0]->seqnum);
+        // pns->stopTimer(SENDER, seqNum);
+        // pns->stopTimer(SENDER, this->packets[0]->seqnum);
+        // pns->startTimer(SENDER, Configuration::TIME_OUT, this->packets[0]->seqnum);
+        pns->stopTimer(SENDER, 0);
+        pns->startTimer(SENDER, Configuration::TIME_OUT, 0);
     }
+    // pns->stopTimer(SENDER, 0);
 }
 
 bool TCPRdtSender::mkpkt(Packet *pak, const Message &message, int seqnum) {
