@@ -26,10 +26,10 @@ void SRRdtReceiver::receive(const Packet &packet) {
             this->packetsRecv[packet.seqnum % MAX_SEQNUM] = 1;
             this->packetsQueue[packet.seqnum % MAX_SEQNUM]->seqnum = packet.seqnum;
             this->packetsQueue[packet.seqnum % MAX_SEQNUM]->acknum = packet.seqnum;
-            this->packetsQueue[packet.seqnum % MAX_SEQNUM]->checksum = packet.checksum;
             for(int i = 0; i < Configuration::PAYLOAD_SIZE; i++) {
                 this->packetsQueue[packet.seqnum % MAX_SEQNUM]->payload[i] = packet.payload[i];
             }
+            this->packetsQueue[packet.seqnum % MAX_SEQNUM]->checksum = pUtils->calculateCheckSum(*this->packetsQueue[packet.seqnum % MAX_SEQNUM]);
             // memcpy(this->packetsQueue[packet.seqnum % MAX_SEQNUM]->payload, packet.payload, sizeof(packet.payload));
             pUtils->printPacket("[Receiver]send ACK: ", *(this->packetsQueue[packet.seqnum % MAX_SEQNUM]));
             pns->sendToNetworkLayer(SENDER, *(this->packetsQueue[packet.seqnum % MAX_SEQNUM]));

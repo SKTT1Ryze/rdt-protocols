@@ -42,11 +42,12 @@ void SRRdtSender::receive(const Packet &ackPkt) {
     int checksum = pUtils->calculateCheckSum(ackPkt);
     if(checksum == ackPkt.checksum) {
         cout << "[Sender]check ACK pass" << endl;
-        if(ackPkt.acknum >= this->base && ackPkt.acknum <= (this->base + this->win_len)) {
+        if(ackPkt.acknum >= this->base && ackPkt.acknum < (this->base + this->win_len)) {
             this->packetsACK[ackPkt.acknum % MAX_SEQNUM] = 1;
             pns->stopTimer(SENDER, ackPkt.acknum);
+            cout << "[Sender]stop timer: " << ackPkt.acknum << endl;
             if(ackPkt.acknum == this->base) {
-                for(int i = this->base % MAX_SEQNUM; ;i = (i + 1) % MAX_SEQNUM, this->base++) {
+                for(int i = (this->base % MAX_SEQNUM); i != (this->nextseqnum % MAX_SEQNUM); i = (i + 1) % MAX_SEQNUM, this->base++) {
                     if(this->packetsACK[i] == 0) {
                         // this->base = i;
                         break;
@@ -62,7 +63,7 @@ void SRRdtSender::receive(const Packet &ackPkt) {
     // }
     cout << "[Sender]window: ";
     for(int i = this->base; i < this->nextseqnum; i++ ) {
-        cout << this->packetsQueue[i % MAX_SEQNUM]->checksum << " ";
+        cout << this->packetsQueue[i % MAX_SEQNUM]->seqnum << " ";
     }
     cout << endl;
 }
